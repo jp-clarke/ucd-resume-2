@@ -7,12 +7,12 @@ function userInformationHTML(user) {
         </h2>
         <div class="gh-content">
             <div class="gh-avatar">
-                <a href="${user.html_url} target="_blank">
+                <a href="${user.html_url}" target="_blank">
                     <img src="${user.avatar_url}" width="80" height="80" alt="${user.login}">
                 </a>
             </div>
             <p>Followers: ${user.followers} - Following ${user.following} <br> Repos: ${user.public_repos}</p>
-        </div>`
+        </div>`;
 }
 
 function repoInformationHTML(repos) {
@@ -23,7 +23,7 @@ function repoInformationHTML(repos) {
     var listItemsHTML = repos.map(function(repo) {
         return `<li>
                     <a href="${repo.html_url}" target="_blank">${repo.name}</a>
-                </li>`
+                </li>`;
     });
 
     return `<div class="clearfix repo-list">
@@ -33,7 +33,7 @@ function repoInformationHTML(repos) {
                 <ul>
                     ${listItemsHTML.join("\n")}
                 </ul>
-            </div>`
+            </div>`;
 }
 
 function fetchGitHubInformation(event) {
@@ -60,9 +60,13 @@ function fetchGitHubInformation(event) {
             var repoData = secondResponse[0];
             $("#gh-user-data").html(userInformationHTML(userData));
             $("#gh-repo-data").html(repoInformationHTML(repoData));
-        }, function(errorResponse) {
+        },
+        function(errorResponse) {
             if (errorResponse.status === 404) {
                 $("#gh-user-data").html(`<h2>No info found for user ${username}</h2>`);
+            } else if (errorResponse.status === 403) {
+                var resetTime = new Date(errorResponse.getResponseHeader('X-RateLimit-Reset') * 1000);
+                $("#gh-user-data").html(`<h4>Too many requests, please wait until ${resetTime.toLocaleTimeString()}</h4>`);
             } else {
                 console.log(errorResponse);
                 $("#gh-user-data").html(
